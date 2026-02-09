@@ -91,6 +91,7 @@ let firebaseIdToken = null;
 let card = null;
 let cashAppPay = null;
 let payments = null;
+let selectedPaymentMethod = 'card';
 
 const q = getQuery();
 
@@ -166,6 +167,40 @@ function postToApp(payload) {
 }
 
 /* =========================
+   Payment Method Selection
+========================= */
+
+function initializePaymentMethodSelection() {
+  const cardOption = document.getElementById("card-option");
+  const cashappOption = document.getElementById("cashapp-option");
+  const cardRadio = document.getElementById("card-radio");
+  const cashappRadio = document.getElementById("cashapp-radio");
+  
+  // Set initial state
+  cardOption.classList.add("active");
+  selectedPaymentMethod = "card";
+  
+  // Add event listeners
+  cardRadio.addEventListener("change", function() {
+    if (this.checked) {
+      selectedPaymentMethod = "card";
+      cardOption.classList.add("active");
+      cashappOption.classList.remove("active");
+      setStatus("info", "Enter your card details, then tap Pay.");
+    }
+  });
+  
+  cashappRadio.addEventListener("change", function() {
+    if (this.checked) {
+      selectedPaymentMethod = "cashapp";
+      cashappOption.classList.add("active");
+      cardOption.classList.remove("active");
+      setStatus("info", "Use Cash App Pay to complete your payment.");
+    }
+  });
+}
+
+/* =========================
    Square init
 ========================= */
 
@@ -207,7 +242,7 @@ async function initSquare() {
     await card.attach("#card-container");
     console.log("Card attached to container");
 
-    // Initialize Cash App Pay
+    // Initialize Cash App Pay with PaymentRequest
     console.log("Attempting to initialize Cash App Pay...");
     console.log("Current URL:", window.location.href);
     
@@ -217,8 +252,20 @@ async function initSquare() {
         throw new Error("Cash App Pay method not available on payments object");
       }
       
-      // Initialize Cash App Pay with proper configuration
-      cashAppPay = await payments.cashAppPay({
+      // Create PaymentRequest for Cash App Pay
+      const paymentRequest = payments.paymentRequest({
+        countryCode: 'US',
+        currencyCode: q.currency,
+        total: {
+          amount: (q.amountCents / 100).toFixed(2),
+          label: 'Total',
+        }
+      });
+      
+      console.log("PaymentRequest created:", paymentRequest);
+      
+      // Initialize Cash App Pay with PaymentRequest
+      cashAppPay = await payments.cashAppPay(paymentRequest, {
         redirectURL: window.location.href,
         referenceId: crypto.randomUUID()
       });
@@ -229,26 +276,21 @@ async function initSquare() {
       await cashAppPay.attach("#cash-app-pay");
       console.log("Cash App Pay attached to container");
       
-      // Make sure container is visible
-      const cashAppContainer = document.getElementById("cash-app-pay");
-      if (cashAppContainer) {
-        cashAppContainer.style.display = "block";
-        cashAppContainer.style.marginTop = "12px";
-        console.log("Cash App Pay container made visible");
-      }
-      
     } catch (error) {
       console.error("Cash App Pay initialization failed:", error);
       console.error("Error details:", error.message, error.stack);
       
-      // Hide the Cash App Pay container if initialization fails
-      const cashAppContainer = document.getElementById("cash-app-pay");
-      if (cashAppContainer) {
-        cashAppContainer.style.display = "none";
+      // Hide the Cash App Pay option if initialization fails
+      const cashAppOption = document.getElementById("cashapp-option");
+      if (cashAppOption) {
+        cashAppOption.style.display = "none";
       }
     }
 
-    setStatus("info", "Enter card details, then tap Pay.");
+    // Initialize payment method selection
+    initializePaymentMethodSelection();
+    
+    setStatus("info", "Choose your payment method and complete payment.");
     log("Square initialized successfully");
   } catch (error) {
     console.error("Square initialization error details:", error);
@@ -345,7 +387,17 @@ async function onPay() {
   btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
 
   try {
-    const nonce = await tokenizeCard();
+    let nonce;
+    
+    // Tokenize based on selected payment method
+    if (selectedPaymentMethod === "card") {
+      nonce = await tokenizeCard();
+    } else if (selectedPaymentMethod === "cashapp") {
+      nonce = await tokenizeCashAppPay();
+    } else {
+      throw new Error("No payment method selected");
+    }
+    
     const result = await createPayment({ sourceId: nonce });
 
     setStatus("ok", "Payment completed. Returning to app…");

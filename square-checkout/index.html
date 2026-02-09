@@ -64,6 +64,41 @@
         background: #ffffff;
       }
 
+      .payment-methods { margin-top: 16px; }
+      .payment-option {
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        background: rgba(255,255,255,0.02);
+      }
+      .payment-option.active {
+        border-color: var(--accent);
+        background: rgba(245,158,11,0.05);
+      }
+      .payment-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .payment-header input[type="radio"] {
+        margin: 0;
+      }
+      .payment-header label {
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        margin: 0;
+      }
+      .payment-option .row {
+        margin-top: 0;
+        display: none;
+      }
+      .payment-option.active .row {
+        display: block;
+      }
+
       .btn {
         margin-top: 14px;
         width: 100%;
@@ -112,16 +147,31 @@
     <div class="wrap">
       <div class="card">
         <p class="title">Checkout</p>
-        <p class="sub">Enter your card details to complete payment.</p>
+        <p class="sub">Choose your payment method to complete payment.</p>
 
         <div class="amount">
           <div class="label">Amount</div>
           <div class="value" id="amountText">$0.00</div>
         </div>
 
-        <div class="row" id="card-container"></div>
+        <!-- Payment Method Selection -->
+        <div class="payment-methods">
+          <div class="payment-option" id="card-option">
+            <div class="payment-header">
+              <input type="radio" name="payment-method" id="card-radio" value="card" checked>
+              <label for="card-radio">Credit Card</label>
+            </div>
+            <div class="row" id="card-container"></div>
+          </div>
 
-        <div class="row" id="cash-app-pay"></div>
+          <div class="payment-option" id="cashapp-option">
+            <div class="payment-header">
+              <input type="radio" name="payment-method" id="cashapp-radio" value="cashapp">
+              <label for="cashapp-radio">Cash App Pay</label>
+            </div>
+            <div class="row" id="cash-app-pay"></div>
+          </div>
+        </div>
 
         <button id="payBtn" class="btn" disabled>Pay</button>
 
