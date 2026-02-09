@@ -122,12 +122,16 @@
       }
       
       .tab-button.active {
-        background: linear-gradient(145deg, #ff6b35 0%, #ff5722 100%);
+        background: 
+          linear-gradient(145deg, rgba(255, 107, 53, 0.15) 0%, rgba(255, 87, 34, 0.1) 100%),
+          var(--glass-bg);
         color: #fff;
-        border-color: rgba(255, 107, 53, 0.6);
+        border-color: rgba(255, 107, 53, 0.3);
         box-shadow: 
-          0 4px 16px rgba(255, 107, 53, 0.4),
-          inset 0 1px 0 rgba(255,255,255,0.2);
+          0 4px 16px rgba(255, 107, 53, 0.2),
+          inset 0 1px 0 rgba(255,255,255,0.3),
+          0 0 0 1px rgba(255, 107, 53, 0.1);
+        backdrop-filter: blur(15px);
       }
       
       .tab-icon {
@@ -148,11 +152,11 @@
       }
       
       .tab-button.active .tab-icon {
-        background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
-        border-color: rgba(255,255,255,0.3);
+        background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
+        border-color: rgba(255,255,255,0.4);
         box-shadow: 
-          0 4px 12px rgba(255, 107, 53, 0.2),
-          inset 0 1px 0 rgba(255,255,255,0.3);
+          0 4px 12px rgba(255, 107, 53, 0.15),
+          inset 0 1px 0 rgba(255,255,255,0.4);
       }
       
       .tab-content {
@@ -188,8 +192,8 @@
       }
       
       .tab-button.active .tab-radio {
-        border-color: rgba(255,255,255,0.8);
-        background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+        border-color: rgba(255,255,255,0.9);
+        background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.2) 100%);
       }
       
       .tab-button.active .tab-radio::after {
@@ -200,9 +204,9 @@
         transform: translate(-50%, -50%);
         width: 10px;
         height: 10px;
-        background: linear-gradient(145deg, #ffffff 0%, #f0f0f0 100%);
+        background: linear-gradient(145deg, #ffffff 0%, #f8f8f8 100%);
         border-radius: 50%;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
       }
       
       .payment-forms {
