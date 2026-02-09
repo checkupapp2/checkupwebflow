@@ -115,14 +115,21 @@ if ($("amountText")) {
   });
 }
 
-// Show payment methods after a short delay as fallback
+// Show payment methods immediately for testing
+const paymentMethodsContainer = document.querySelector('.payment-methods');
+if (paymentMethodsContainer) {
+  paymentMethodsContainer.classList.add('ready');
+  log("Payment method selector shown immediately");
+}
+
+// Also show after delay as fallback
 setTimeout(() => {
-  const paymentMethodsContainer = document.querySelector('.payment-methods');
-  if (paymentMethodsContainer && !paymentMethodsContainer.classList.contains('ready')) {
-    paymentMethodsContainer.classList.add('ready');
+  const container = document.querySelector('.payment-methods');
+  if (container && !container.classList.contains('ready')) {
+    container.classList.add('ready');
     log("Payment method selector shown via fallback");
   }
-}, 3000);
+}, 1000);
 
 /* =========================
    Receive token from Flutter
@@ -199,10 +206,7 @@ async function initSquare() {
   // Initialize card payment method
   await initCardPayment();
   
-  // Initialize other payment methods
-  await initACHPayment();
-  await initGooglePay();
-  await initApplePay();
+  // Initialize Cash App Pay
   await initCashAppPay();
   
   // Set up payment method switching
@@ -234,18 +238,6 @@ async function tokenizePaymentMethod() {
     case 'card':
       if (!card) throw new Error('Card payment method not initialized');
       result = await card.tokenize();
-      break;
-    case 'ach':
-      if (!ach) throw new Error('ACH payment method not initialized');
-      result = await ach.tokenize();
-      break;
-    case 'google-pay':
-      if (!googlePay) throw new Error('Google Pay not initialized');
-      result = await googlePay.tokenize();
-      break;
-    case 'apple-pay':
-      if (!applePay) throw new Error('Apple Pay not initialized');
-      result = await applePay.tokenize();
       break;
     case 'cash-app-pay':
       if (!cashAppPay) throw new Error('Cash App Pay not initialized');
@@ -341,21 +333,26 @@ async function initCashAppPay() {
     });
     await cashAppPay.attach("#cash-app-pay-container");
     log("Cash App Pay initialized successfully");
+    console.log("Cash App Pay widget attached to container");
     
     // Ensure the container is properly styled for Cash App Pay
     const container = document.getElementById('cash-app-pay-container');
     if (container) {
-      container.style.minHeight = '50px';
-      container.style.display = 'flex';
-      container.style.alignItems = 'center';
-      container.style.justifyContent = 'center';
+      container.style.minHeight = '80px';
+      container.style.backgroundColor = '#ffffff';
+      container.style.borderRadius = '14px';
+      container.style.padding = '14px';
+      log("Cash App Pay container styled");
     }
   } catch (e) {
     log("Cash App Pay failed to initialize:", e);
     console.error("Cash App Pay initialization error:", e);
     // Hide Cash App Pay option if not available
     const cashAppPayOption = document.querySelector('[data-method="cash-app-pay"]');
-    if (cashAppPayOption) cashAppPayOption.style.display = 'none';
+    if (cashAppPayOption) {
+      cashAppPayOption.style.display = 'none';
+      log("Cash App Pay option hidden due to initialization failure");
+    }
   }
 }
 
