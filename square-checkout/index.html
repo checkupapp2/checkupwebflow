@@ -88,12 +88,19 @@
         border-radius: 14px;
         background: #ffffff;
         display: none;
+        min-height: 60px;
       }
       #card-container {
         display: block;
       }
       #card-container.active, #ach-container.active, #google-pay-container.active, #apple-pay-container.active, #cash-app-pay-container.active {
         display: block;
+      }
+      #cash-app-pay-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
       }
       .payment-methods {
         display: none;

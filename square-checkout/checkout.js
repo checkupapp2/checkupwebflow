@@ -328,9 +328,19 @@ async function initCashAppPay() {
       referenceId: crypto.randomUUID()
     });
     await cashAppPay.attach("#cash-app-pay-container");
-    log("Cash App Pay initialized");
+    log("Cash App Pay initialized successfully");
+    
+    // Ensure the container is properly styled for Cash App Pay
+    const container = document.getElementById('cash-app-pay-container');
+    if (container) {
+      container.style.minHeight = '50px';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+    }
   } catch (e) {
     log("Cash App Pay failed to initialize:", e);
+    console.error("Cash App Pay initialization error:", e);
     // Hide Cash App Pay option if not available
     const cashAppPayOption = document.querySelector('[data-method="cash-app-pay"]');
     if (cashAppPayOption) cashAppPayOption.style.display = 'none';
@@ -352,14 +362,29 @@ function setupPaymentMethodSwitching() {
       // Show/hide containers
       containers.forEach(container => {
         container.classList.remove('active');
+        container.style.display = 'none';
         if (container.id === `${methodType}-container`) {
           container.classList.add('active');
+          if (methodType === 'cash-app-pay') {
+            container.style.display = 'flex';
+          } else {
+            container.style.display = 'block';
+          }
         }
       });
       
       // Update current payment method
       currentPaymentMethod = methodType;
       log(`Switched to payment method: ${methodType}`);
+      
+      // Debug Cash App Pay specifically
+      if (methodType === 'cash-app-pay') {
+        const cashAppContainer = document.getElementById('cash-app-pay-container');
+        log('Cash App Pay container:', cashAppContainer);
+        log('Cash App Pay object:', cashAppPay);
+        console.log('Cash App Pay container element:', cashAppContainer);
+        console.log('Cash App Pay payment object:', cashAppPay);
+      }
     });
   });
 }
