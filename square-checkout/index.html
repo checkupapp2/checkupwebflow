@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Checkout</title>
 
-    <!-- Square Web Payments SDK (Latest Version 2026-01-22) -->
-    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js?version=2026-01-22"></script>
+    <!-- Square Web Payments SDK (Sandbox) -->
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 
     <style>
       :root {
@@ -83,13 +83,13 @@
       .payment-method:hover {
         background: rgba(255,255,255,.08);
       }
-      #card-container, #ach-container, #google-pay-container, #apple-pay-container {
+      #card-container, #cash-app-pay-container {
         padding: 14px;
         border-radius: 14px;
         background: #ffffff;
         display: none;
       }
-      #card-container.active, #ach-container.active, #google-pay-container.active, #apple-pay-container.active {
+      #card-container.active, #cash-app-pay-container.active {
         display: block;
       }
 
@@ -150,9 +150,11 @@
 
         <div class="payment-methods">
           <div class="payment-method active" data-method="card">💳 Card</div>
+          <div class="payment-method" data-method="cash-app-pay">💸 Cash App Pay</div>
         </div>
 
         <div class="row active" id="card-container"></div>
+        <div class="row" id="cash-app-pay-container"></div>
 
         <button id="payBtn" class="btn" disabled>Pay</button>
 

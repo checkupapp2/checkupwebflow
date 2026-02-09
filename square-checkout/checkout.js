@@ -89,7 +89,9 @@ function setTokenReady(isReady) {
 
 let firebaseIdToken = null;
 let card = null;
+let cashAppPay = null;
 let payments = null;
+let currentPaymentMethod = 'card';
 
 const q = getQuery();
 
@@ -182,23 +184,99 @@ async function initSquare() {
 
   payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
 
-  card = await payments.card();
-  await card.attach("#card-container");
+  // Initialize card payment method
+  await initCardPayment();
+  
+  // Initialize Cash App Pay
+  await initCashAppPay();
+  
+  // Set up payment method switching
+  setupPaymentMethodSwitching();
 
-  setStatus("info", "Enter card details, then tap Pay.");
-  log("Square initialized");
+  setStatus("info", "Choose your payment method and complete payment.");
+  log("Square initialized with Card and Cash App Pay");
 }
 
-async function tokenizeCard() {
-  const result = await card.tokenize();
+async function tokenizePaymentMethod() {
+  let result;
+  
+  switch (currentPaymentMethod) {
+    case 'card':
+      if (!card) throw new Error('Card payment method not initialized');
+      result = await card.tokenize();
+      break;
+    case 'cash-app-pay':
+      if (!cashAppPay) throw new Error('Cash App Pay not initialized');
+      result = await cashAppPay.tokenize();
+      break;
+    default:
+      throw new Error('Unknown payment method');
+  }
+  
   if (result.status !== "OK") {
     const errMsg =
-      result?.errors?.map((e) => e.message).join(", ") || "Card tokenization failed.";
+      result?.errors?.map((e) => e.message).join(", ") || "Payment tokenization failed.";
     throw new Error(errMsg);
   }
   return result.token; // Square nonce
 }
 
+/* =========================
+   Payment Method Initialization
+========================= */
+
+async function initCardPayment() {
+  try {
+    card = await payments.card();
+    await card.attach("#card-container");
+    log("Card payment method initialized");
+  } catch (e) {
+    log("Card payment method failed to initialize:", e);
+  }
+}
+
+async function initCashAppPay() {
+  try {
+    cashAppPay = await payments.cashAppPay({
+      redirectURI: window.location.href,
+      referenceId: crypto.randomUUID()
+    });
+    await cashAppPay.attach("#cash-app-pay-container");
+    log("Cash App Pay initialized");
+  } catch (e) {
+    log("Cash App Pay failed to initialize:", e);
+    // Hide Cash App Pay option if not available
+    const cashAppPayOption = document.querySelector('[data-method="cash-app-pay"]');
+    if (cashAppPayOption) cashAppPayOption.style.display = 'none';
+  }
+}
+
+function setupPaymentMethodSwitching() {
+  const paymentMethods = document.querySelectorAll('.payment-method');
+  const containers = document.querySelectorAll('[id$="-container"]');
+  
+  paymentMethods.forEach(method => {
+    method.addEventListener('click', () => {
+      const methodType = method.dataset.method;
+      
+      // Update active states
+      paymentMethods.forEach(m => m.classList.remove('active'));
+      method.classList.add('active');
+      
+      // Show/hide containers
+      containers.forEach(container => {
+        container.classList.remove('active');
+        if (container.id === `${methodType}-container`) {
+          container.classList.add('active');
+        }
+      });
+      
+      // Update current payment method
+      currentPaymentMethod = methodType;
+      log(`Switched to payment method: ${methodType}`);
+    });
+  });
+}
 
 /* =========================
    Call backend
@@ -250,7 +328,7 @@ async function onPay() {
   btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
 
   try {
-    const nonce = await tokenizeCard();
+    const nonce = await tokenizePaymentMethod();
     const result = await createPayment({ sourceId: nonce });
 
     setStatus("ok", "Payment completed. Returning to app…");
