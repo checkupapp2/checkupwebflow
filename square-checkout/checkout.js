@@ -309,12 +309,23 @@ async function initSquare() {
 }
 
 async function tokenizeCard() {
+  console.log("Starting card tokenization...");
+  
+  if (!card) {
+    throw new Error("Card payment method not initialized");
+  }
+  
   const result = await card.tokenize();
+  console.log("Card tokenization result:", result);
+  
   if (result.status !== "OK") {
+    console.error("Card tokenization failed:", result);
     const errMsg =
       result?.errors?.map((e) => e.message).join(", ") || "Card tokenization failed.";
     throw new Error(errMsg);
   }
+  
+  console.log("Card tokenization successful, token:", result.token);
   return result.token; // Square nonce
 }
 
@@ -349,9 +360,12 @@ async function createPayment({ sourceId }) {
     contextId: q.contextId,
     eventId: q.eventId || undefined,
     // Add API version for compatibility
-    apiVersion: "2026-01-22"
+    apiVersion: "2025-01-23"
   };
 
+  console.log("Payment request body:", JSON.stringify(body, null, 2));
+  console.log("Payment endpoint URL:", CREATE_PAYMENT_URL);
+  console.log("Firebase token present:", !!firebaseIdToken);
   log("Calling payment endpoint", body);
 
   const resp = await fetch(CREATE_PAYMENT_URL, {
@@ -360,16 +374,21 @@ async function createPayment({ sourceId }) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${firebaseIdToken}`,
       // Add Square API version header
-      "Square-Version": "2026-01-22"
+      "Square-Version": "2025-01-23"
     },
     body: JSON.stringify(body),
   });
 
   const text = await resp.text().catch(() => "");
+  console.log("Payment response status:", resp.status);
+  console.log("Payment response headers:", Object.fromEntries(resp.headers.entries()));
+  console.log("Payment response body:", text);
+  
   if (!resp.ok) {
     let errorMessage = `Payment request failed (${resp.status})`;
     try {
       const errorData = JSON.parse(text);
+      console.error("Payment error data:", errorData);
       if (errorData.message) {
         errorMessage = errorData.message;
       } else if (errorData.errors && errorData.errors.length > 0) {
