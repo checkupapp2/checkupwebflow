@@ -346,27 +346,76 @@ async function initSquare() {
 
     // Initialize Google Pay
     console.log("Attempting to initialize Google Pay...");
+    console.log("Available payment methods:", Object.keys(payments));
+    
     try {
-      const paymentRequest = payments.paymentRequest({
+      // Check if Google Pay is available first
+      if (typeof payments.googlePay !== 'function') {
+        console.warn("Google Pay method not available on payments object");
+        throw new Error("Google Pay not supported by Square SDK");
+      }
+      
+      // Create payment request for Google Pay with additional sandbox configuration
+      const googlePayRequest = payments.paymentRequest({
         countryCode: 'US',
         currencyCode: q.currency,
         total: {
           amount: (q.amountCents / 100).toFixed(2),
           label: 'Total',
+        },
+        // Add additional fields that might help with sandbox
+        requestShipping: false,
+        requestBillingAddress: false
+      });
+      
+      console.log("Google Pay PaymentRequest created:", googlePayRequest);
+      
+      // Try to initialize Google Pay
+      googlePay = await payments.googlePay(googlePayRequest);
+      console.log("Google Pay object created successfully:", googlePay);
+      
+      // Attach Google Pay to container with button options
+      await googlePay.attach("#google-pay", {
+        buttonType: 'short',
+        buttonColor: 'default',
+        buttonSizeMode: 'fill'
+      });
+      console.log("Google Pay attached to container successfully");
+      
+      // Add event listeners for Google Pay interactions
+      googlePay.addEventListener('ontokenization', (event) => {
+        console.log('Google Pay tokenization event:', event);
+        setStatus("info", "Google Pay authorized! Tap Pay to complete your purchase.");
+        
+        // Enable the pay button
+        const payBtn = document.getElementById("payBtn");
+        if (payBtn) {
+          payBtn.disabled = false;
         }
       });
       
-      googlePay = await payments.googlePay(paymentRequest);
-      console.log("Google Pay object created:", googlePay);
-      
-      await googlePay.attach("#google-pay");
-      console.log("Google Pay attached to container");
+      googlePay.addEventListener('onpaymentmethodreceived', (event) => {
+        console.log('Google Pay payment method received:', event);
+        setStatus("info", "Payment method ready. Tap Pay to complete your purchase.");
+      });
       
     } catch (error) {
       console.error("Google Pay initialization failed:", error);
-      const googlePayTab = document.getElementById("googlepay-tab");
-      if (googlePayTab) {
-        googlePayTab.style.display = "none";
+      console.error("Google Pay error details:", error.message, error.stack);
+      
+      // Show a placeholder for Google Pay with error info
+      const googlePayContainer = document.getElementById("google-pay");
+      if (googlePayContainer) {
+        let errorMsg = error.message;
+        if (errorMsg.includes('not supported') || errorMsg.includes('not available')) {
+          errorMsg = "Google Pay not available on this device/browser";
+        }
+        
+        googlePayContainer.innerHTML = `<div style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 13px; text-align: center;">
+          <div style="margin-bottom: 4px;">🅖</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Google Pay</div>
+          <div style="font-size: 11px; opacity: 0.7;">${errorMsg}</div>
+        </div>`;
       }
     }
 
