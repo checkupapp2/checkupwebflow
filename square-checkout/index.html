@@ -5,13 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Checkout</title>
 
-    <!-- Square Web Payments SDK (Sandbox) -->
-    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
-    
-    <!-- Cache busting meta tags -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <!-- Square Web Payments SDK (Latest Version 2026-01-22) -->
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js?version=2026-01-22"></script>
 
     <style>
       :root {
@@ -88,30 +83,14 @@
       .payment-method:hover {
         background: rgba(255,255,255,.08);
       }
-      #card-container, #ach-container, #google-pay-container, #apple-pay-container, #cash-app-pay-container {
+      #card-container, #ach-container, #google-pay-container, #apple-pay-container {
         padding: 14px;
         border-radius: 14px;
         background: #ffffff;
         display: none;
-        min-height: 60px;
       }
-      #card-container {
+      #card-container.active, #ach-container.active, #google-pay-container.active, #apple-pay-container.active {
         display: block;
-      }
-      #card-container.active, #ach-container.active, #google-pay-container.active, #apple-pay-container.active, #cash-app-pay-container.active {
-        display: block;
-      }
-      #cash-app-pay-container {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-      }
-      #cash-app-pay-container.active {
-        display: flex !important;
-      }
-      .payment-methods {
-        display: flex;
       }
 
       .btn {
@@ -162,7 +141,7 @@
     <div class="wrap">
       <div class="card">
         <p class="title">Checkout</p>
-        <p class="sub" id="checkout-subtitle">Enter your card details to complete payment.</p>
+        <p class="sub">Enter your card details to complete payment.</p>
 
         <div class="amount">
           <div class="label">Amount</div>
@@ -171,11 +150,15 @@
 
         <div class="payment-methods">
           <div class="payment-method active" data-method="card">💳 Card</div>
-          <div class="payment-method" data-method="cash-app-pay">💸 Cash App Pay</div>
+          <div class="payment-method" data-method="ach">🏦 Bank</div>
+          <div class="payment-method" data-method="google-pay">📱 Google Pay</div>
+          <div class="payment-method" data-method="apple-pay">🍎 Apple Pay</div>
         </div>
 
         <div class="row active" id="card-container"></div>
-        <div class="row" id="cash-app-pay-container"></div>
+        <div class="row" id="ach-container"></div>
+        <div class="row" id="google-pay-container"></div>
+        <div class="row" id="apple-pay-container"></div>
 
         <button id="payBtn" class="btn" disabled>Pay</button>
 
@@ -187,6 +170,6 @@
       </div>
     </div>
 
-    <script src="./checkout.js?v=20260208"></script>
+    <script src="./checkout.js"></script>
   </body>
 </html>
