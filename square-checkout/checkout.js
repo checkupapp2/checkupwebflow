@@ -179,6 +179,22 @@ function initializePaymentMethodSelection() {
   // Set initial state
   selectedPaymentMethod = "card";
   
+  // Update pay button state based on payment method
+  function updatePayButtonState() {
+    const payBtn = document.getElementById("payBtn");
+    if (!payBtn) return;
+    
+    if (selectedPaymentMethod === "card") {
+      // For card, enable when card is ready (handled by Square SDK)
+      payBtn.disabled = !card;
+    } else if (selectedPaymentMethod === "cashapp") {
+      // For Cash App Pay, start disabled until user interacts with Cash App button
+      payBtn.disabled = true;
+    }
+  }
+  
+  updatePayButtonState();
+  
   // Add event listeners for tab buttons
   cardTab.addEventListener("click", function() {
     selectedPaymentMethod = "card";
@@ -191,6 +207,7 @@ function initializePaymentMethodSelection() {
     cardForm.classList.add("active");
     cashappForm.classList.remove("active");
     
+    updatePayButtonState();
     setStatus("info", "Enter your card details, then tap Pay.");
   });
   
@@ -205,7 +222,8 @@ function initializePaymentMethodSelection() {
     cashappForm.classList.add("active");
     cardForm.classList.remove("active");
     
-    setStatus("info", "Use Cash App Pay to complete your payment.");
+    updatePayButtonState();
+    setStatus("info", "Click the Cash App Pay button above, then tap Pay to complete your purchase.");
   });
 }
 
@@ -285,6 +303,23 @@ async function initSquare() {
       await cashAppPay.attach("#cash-app-pay");
       console.log("Cash App Pay attached to container");
       
+      // Add event listeners for Cash App Pay interactions
+      cashAppPay.addEventListener('ontokenization', (event) => {
+        console.log('Cash App Pay tokenization event:', event);
+        setStatus("info", "Cash App Pay authorized! Tap Pay to complete your purchase.");
+        
+        // Enable the pay button
+        const payBtn = document.getElementById("payBtn");
+        if (payBtn) {
+          payBtn.disabled = false;
+        }
+      });
+      
+      cashAppPay.addEventListener('onpaymentmethodreceived', (event) => {
+        console.log('Cash App Pay payment method received:', event);
+        setStatus("info", "Payment method ready. Tap Pay to complete your purchase.");
+      });
+      
     } catch (error) {
       console.error("Cash App Pay initialization failed:", error);
       console.error("Error details:", error.message, error.stack);
@@ -299,7 +334,7 @@ async function initSquare() {
     // Initialize payment method selection
     initializePaymentMethodSelection();
     
-    setStatus("info", "Choose your payment method and complete payment.");
+    setStatus("info", "Select Card to enter details, or Cash App to authorize payment.");
     log("Square initialized successfully");
   } catch (error) {
     console.error("Square initialization error details:", error);
@@ -412,23 +447,32 @@ async function onPay() {
 
   const btn = $("payBtn");
   btn.disabled = true;
-  btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
+  
+  // Update button text based on payment method
+  if (selectedPaymentMethod === "cashapp") {
+    btn.innerHTML = `<span class="spinner"></span>&nbsp;Completing Cash App Payment…`;
+  } else {
+    btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Card Payment…`;
+  }
 
   try {
     let nonce;
     
     // Tokenize based on selected payment method
     if (selectedPaymentMethod === "card") {
+      setStatus("info", "Processing your card payment...");
       nonce = await tokenizeCard();
     } else if (selectedPaymentMethod === "cashapp") {
+      setStatus("info", "Completing your Cash App payment...");
       nonce = await tokenizeCashAppPay();
     } else {
       throw new Error("No payment method selected");
     }
     
+    setStatus("info", "Finalizing payment with merchant...");
     const result = await createPayment({ sourceId: nonce });
 
-    setStatus("ok", "Payment completed. Returning to app…");
+    setStatus("ok", "Payment successful! Redirecting to your ticket...");
 
     postToApp({
       type: "PAYMENT_RESULT",
@@ -436,7 +480,8 @@ async function onPay() {
       result,
     });
   } catch (e) {
-    setStatus("err", e?.message || "Payment failed.");
+    console.error("Payment failed:", e);
+    setStatus("err", e?.message || "Payment failed. Please try again.");
     postToApp({
       type: "PAYMENT_RESULT",
       ok: false,
