@@ -89,11 +89,7 @@ function setTokenReady(isReady) {
 
 let firebaseIdToken = null;
 let card = null;
-let ach = null;
-let googlePay = null;
-let applePay = null;
 let payments = null;
-let currentPaymentMethod = 'card';
 
 const q = getQuery();
 
@@ -186,149 +182,23 @@ async function initSquare() {
 
   payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
 
-  // Initialize card payment method
-  await initCardPayment();
-  
-  // Initialize other payment methods
-  await initACHPayment();
-  await initGooglePay();
-  await initApplePay();
-  
-  // Set up payment method switching
-  setupPaymentMethodSwitching();
+  card = await payments.card();
+  await card.attach("#card-container");
 
-  setStatus("info", "Choose your payment method and complete payment.");
-  log("Square initialized with multiple payment methods");
+  setStatus("info", "Enter card details, then tap Pay.");
+  log("Square initialized");
 }
 
-async function tokenizePaymentMethod() {
-  let result;
-  
-  switch (currentPaymentMethod) {
-    case 'card':
-      if (!card) throw new Error('Card payment method not initialized');
-      result = await card.tokenize();
-      break;
-    case 'ach':
-      if (!ach) throw new Error('ACH payment method not initialized');
-      result = await ach.tokenize();
-      break;
-    case 'google-pay':
-      if (!googlePay) throw new Error('Google Pay not initialized');
-      result = await googlePay.tokenize();
-      break;
-    case 'apple-pay':
-      if (!applePay) throw new Error('Apple Pay not initialized');
-      result = await applePay.tokenize();
-      break;
-    default:
-      throw new Error('Unknown payment method');
-  }
-  
+async function tokenizeCard() {
+  const result = await card.tokenize();
   if (result.status !== "OK") {
     const errMsg =
-      result?.errors?.map((e) => e.message).join(", ") || "Payment tokenization failed.";
+      result?.errors?.map((e) => e.message).join(", ") || "Card tokenization failed.";
     throw new Error(errMsg);
   }
   return result.token; // Square nonce
 }
 
-/* =========================
-   Payment Method Initialization
-========================= */
-
-async function initCardPayment() {
-  try {
-    card = await payments.card();
-    await card.attach("#card-container");
-    log("Card payment method initialized");
-  } catch (e) {
-    log("Card payment method failed to initialize:", e);
-  }
-}
-
-async function initACHPayment() {
-  try {
-    ach = await payments.ach({
-      redirectURI: window.location.href,
-      transactionId: crypto.randomUUID()
-    });
-    await ach.attach("#ach-container");
-    log("ACH payment method initialized");
-  } catch (e) {
-    log("ACH payment method failed to initialize:", e);
-    // Hide ACH option if not available
-    const achOption = document.querySelector('[data-method="ach"]');
-    if (achOption) achOption.style.display = 'none';
-  }
-}
-
-async function initGooglePay() {
-  try {
-    googlePay = await payments.googlePay({
-      countryCode: 'US',
-      currencyCode: q.currency,
-      total: {
-        amount: (q.amountCents / 100).toString(),
-        label: 'Total'
-      }
-    });
-    await googlePay.attach("#google-pay-container");
-    log("Google Pay initialized");
-  } catch (e) {
-    log("Google Pay failed to initialize:", e);
-    // Hide Google Pay option if not available
-    const googlePayOption = document.querySelector('[data-method="google-pay"]');
-    if (googlePayOption) googlePayOption.style.display = 'none';
-  }
-}
-
-async function initApplePay() {
-  try {
-    applePay = await payments.applePay({
-      countryCode: 'US',
-      currencyCode: q.currency,
-      total: {
-        amount: (q.amountCents / 100).toString(),
-        label: 'Total'
-      }
-    });
-    await applePay.attach("#apple-pay-container");
-    log("Apple Pay initialized");
-  } catch (e) {
-    log("Apple Pay failed to initialize:", e);
-    // Hide Apple Pay option if not available
-    const applePayOption = document.querySelector('[data-method="apple-pay"]');
-    if (applePayOption) applePayOption.style.display = 'none';
-  }
-}
-
-function setupPaymentMethodSwitching() {
-  const paymentMethods = document.querySelectorAll('.payment-method');
-  const containers = document.querySelectorAll('[id$="-container"]');
-  
-  paymentMethods.forEach(method => {
-    method.addEventListener('click', () => {
-      const methodType = method.dataset.method;
-      
-      // Update active states
-      paymentMethods.forEach(m => m.classList.remove('active'));
-      method.classList.add('active');
-      
-      // Show/hide containers
-      containers.forEach(container => {
-        container.classList.remove('active');
-        if (container.id === `${methodType}-container`) {
-          container.classList.add('active');
-        }
-      });
-      
-      // Update current payment method
-      currentPaymentMethod = methodType;
-      log(`Switched to payment method: ${methodType}`);
-    });
-  });
-}
 
 /* =========================
    Call backend
@@ -380,7 +250,7 @@ async function onPay() {
   btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
 
   try {
-    const nonce = await tokenizePaymentMethod();
+    const nonce = await tokenizeCard();
     const result = await createPayment({ sourceId: nonce });
 
     setStatus("ok", "Payment completed. Returning to app…");
