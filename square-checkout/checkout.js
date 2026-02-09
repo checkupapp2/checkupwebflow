@@ -241,25 +241,14 @@ async function initSquare() {
       console.error("Cash App Pay initialization failed:", error);
       console.error("Error details:", error.message, error.stack);
       
-      // Show debugging information
+      // Hide the Cash App Pay container if initialization fails
       const cashAppContainer = document.getElementById("cash-app-pay");
       if (cashAppContainer) {
-        let errorMsg = error.message;
-        if (errorMsg.includes('not available') || errorMsg.includes('not supported')) {
-          errorMsg = "Cash App Pay not available in sandbox environment";
-        }
-        
-        cashAppContainer.innerHTML = `<div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 12px; text-align: center;">
-          <strong>Cash App Pay Debug:</strong><br>
-          ${errorMsg}<br>
-          <small>Check browser console for details</small>
-        </div>`;
-        cashAppContainer.style.display = "block";
-        cashAppContainer.style.marginTop = "12px";
+        cashAppContainer.style.display = "none";
       }
     }
 
-    setStatus("info", "Enter card details or use Cash App Pay, then tap Pay.");
+    setStatus("info", "Enter card details, then tap Pay.");
     log("Square initialized successfully");
   } catch (error) {
     console.error("Square initialization error details:", error);
