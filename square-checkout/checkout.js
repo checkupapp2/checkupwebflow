@@ -76,10 +76,26 @@ function setTokenReady(isReady) {
 
   if (isReady) {
     pill.textContent = "Secure session received. You can pay now.";
-    btn.disabled = false;
+    updatePayButtonState();
   } else {
     pill.textContent = "Waiting for secure session from the app…";
     btn.disabled = true;
+  }
+}
+
+function updatePayButtonState() {
+  const btn = $("payBtn");
+  
+  if (!firebaseIdToken) {
+    btn.disabled = true;
+    return;
+  }
+  
+  // Enable Pay button based on selected payment method and its readiness
+  if (selectedPaymentMethod === "card") {
+    btn.disabled = false; // Card is always ready once token is received
+  } else if (selectedPaymentMethod === "cashapp") {
+    btn.disabled = !cashAppPayAuthorized; // Only enable if Cash App Pay is authorized
   }
 }
 
@@ -92,6 +108,7 @@ let card = null;
 let cashAppPay = null;
 let payments = null;
 let selectedPaymentMethod = 'card';
+let cashAppPayAuthorized = false;
 
 const q = getQuery();
 
@@ -191,6 +208,9 @@ function initializePaymentMethodSelection() {
     cardForm.classList.add("active");
     cashappForm.classList.remove("active");
     
+    // Update Pay button state for card
+    updatePayButtonState();
+    
     setStatus("info", "Enter your card details, then tap Pay.");
   });
   
@@ -205,7 +225,14 @@ function initializePaymentMethodSelection() {
     cashappForm.classList.add("active");
     cardForm.classList.remove("active");
     
-    setStatus("info", "Use Cash App Pay to complete your payment.");
+    // Update Pay button state for Cash App Pay
+    updatePayButtonState();
+    
+    if (cashAppPayAuthorized) {
+      setStatus("info", "Cash App Pay authorized. Tap Pay to complete your payment.");
+    } else {
+      setStatus("info", "Tap the Cash App Pay button to authorize payment.");
+    }
   });
 }
 
@@ -284,6 +311,23 @@ async function initSquare() {
       // Attach to container
       await cashAppPay.attach("#cash-app-pay");
       console.log("Cash App Pay attached to container");
+      
+      // Add event listeners for Cash App Pay authorization
+      cashAppPay.addEventListener('ontokenization', (event) => {
+        console.log("Cash App Pay tokenization event:", event);
+        if (event.detail && event.detail.status === 'OK') {
+          cashAppPayAuthorized = true;
+          updatePayButtonState();
+          setStatus("info", "Cash App Pay authorized. Tap Pay to complete your payment.");
+        }
+      });
+      
+      cashAppPay.addEventListener('onauthorization', (event) => {
+        console.log("Cash App Pay authorization event:", event);
+        cashAppPayAuthorized = true;
+        updatePayButtonState();
+        setStatus("info", "Cash App Pay authorized. Tap Pay to complete your payment.");
+      });
       
     } catch (error) {
       console.error("Cash App Pay initialization failed:", error);
