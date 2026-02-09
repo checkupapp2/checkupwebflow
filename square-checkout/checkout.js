@@ -197,13 +197,7 @@ async function initSquare() {
       style: {
         input: {
           fontSize: '14px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
-          color: '#000000',
-          backgroundColor: '#ffffff'
-        },
-        '.input-container': {
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb'
+          color: '#000000'
         }
       }
     });
