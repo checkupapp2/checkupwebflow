@@ -90,6 +90,8 @@ function setTokenReady(isReady) {
 let firebaseIdToken = null;
 let card = null;
 let cashAppPay = null;
+let applePay = null;
+let googlePay = null;
 let payments = null;
 let selectedPaymentMethod = 'card';
 
@@ -172,9 +174,17 @@ function postToApp(payload) {
 
 function initializePaymentMethodSelection() {
   const cardTab = document.getElementById("card-tab");
+  const applePayTab = document.getElementById("applepay-tab");
+  const googlePayTab = document.getElementById("googlepay-tab");
   const cashappTab = document.getElementById("cashapp-tab");
+  
   const cardForm = document.getElementById("card-form");
+  const applePayForm = document.getElementById("applepay-form");
+  const googlePayForm = document.getElementById("googlepay-form");
   const cashappForm = document.getElementById("cashapp-form");
+  
+  const allTabs = [cardTab, applePayTab, googlePayTab, cashappTab];
+  const allForms = [cardForm, applePayForm, googlePayForm, cashappForm];
   
   // Set initial state
   selectedPaymentMethod = "card";
@@ -184,45 +194,59 @@ function initializePaymentMethodSelection() {
     const payBtn = document.getElementById("payBtn");
     if (!payBtn) return;
     
-    if (selectedPaymentMethod === "card") {
-      // For card, enable when card is ready (handled by Square SDK)
-      payBtn.disabled = !card;
-    } else if (selectedPaymentMethod === "cashapp") {
-      // For Cash App Pay, start disabled until user interacts with Cash App button
-      payBtn.disabled = true;
+    switch (selectedPaymentMethod) {
+      case "card":
+        payBtn.disabled = !card;
+        break;
+      case "applepay":
+        payBtn.disabled = !applePay;
+        break;
+      case "googlepay":
+        payBtn.disabled = !googlePay;
+        break;
+      case "cashapp":
+        payBtn.disabled = true; // Will be enabled by Cash App Pay events
+        break;
+      default:
+        payBtn.disabled = true;
     }
+  }
+  
+  // Function to switch payment method
+  function switchPaymentMethod(method, activeTab, activeForm) {
+    selectedPaymentMethod = method;
+    
+    // Update tab states
+    allTabs.forEach(tab => tab?.classList.remove("active"));
+    activeTab?.classList.add("active");
+    
+    // Update form visibility
+    allForms.forEach(form => form?.classList.remove("active"));
+    activeForm?.classList.add("active");
+    
+    updatePayButtonState();
   }
   
   updatePayButtonState();
   
-  // Add event listeners for tab buttons
-  cardTab.addEventListener("click", function() {
-    selectedPaymentMethod = "card";
-    
-    // Update tab states
-    cardTab.classList.add("active");
-    cashappTab.classList.remove("active");
-    
-    // Update form visibility
-    cardForm.classList.add("active");
-    cashappForm.classList.remove("active");
-    
-    updatePayButtonState();
+  // Add event listeners for all tabs
+  cardTab?.addEventListener("click", function() {
+    switchPaymentMethod("card", cardTab, cardForm);
     setStatus("info", "Enter your card details, then tap Pay.");
   });
   
-  cashappTab.addEventListener("click", function() {
-    selectedPaymentMethod = "cashapp";
-    
-    // Update tab states
-    cashappTab.classList.add("active");
-    cardTab.classList.remove("active");
-    
-    // Update form visibility
-    cashappForm.classList.add("active");
-    cardForm.classList.remove("active");
-    
-    updatePayButtonState();
+  applePayTab?.addEventListener("click", function() {
+    switchPaymentMethod("applepay", applePayTab, applePayForm);
+    setStatus("info", "Use Apple Pay for quick and secure checkout.");
+  });
+  
+  googlePayTab?.addEventListener("click", function() {
+    switchPaymentMethod("googlepay", googlePayTab, googlePayForm);
+    setStatus("info", "Use Google Pay for fast and secure payment.");
+  });
+  
+  cashappTab?.addEventListener("click", function() {
+    switchPaymentMethod("cashapp", cashappTab, cashappForm);
     setStatus("info", "Click the Cash App Pay button above, then tap Pay to complete your purchase.");
   });
 }
@@ -268,6 +292,58 @@ async function initSquare() {
     
     await card.attach("#card-container");
     console.log("Card attached to container");
+
+    // Initialize Apple Pay
+    console.log("Attempting to initialize Apple Pay...");
+    try {
+      const paymentRequest = payments.paymentRequest({
+        countryCode: 'US',
+        currencyCode: q.currency,
+        total: {
+          amount: (q.amountCents / 100).toFixed(2),
+          label: 'Total',
+        }
+      });
+      
+      applePay = await payments.applePay(paymentRequest);
+      console.log("Apple Pay object created:", applePay);
+      
+      await applePay.attach("#apple-pay");
+      console.log("Apple Pay attached to container");
+      
+    } catch (error) {
+      console.error("Apple Pay initialization failed:", error);
+      const applePayTab = document.getElementById("applepay-tab");
+      if (applePayTab) {
+        applePayTab.style.display = "none";
+      }
+    }
+
+    // Initialize Google Pay
+    console.log("Attempting to initialize Google Pay...");
+    try {
+      const paymentRequest = payments.paymentRequest({
+        countryCode: 'US',
+        currencyCode: q.currency,
+        total: {
+          amount: (q.amountCents / 100).toFixed(2),
+          label: 'Total',
+        }
+      });
+      
+      googlePay = await payments.googlePay(paymentRequest);
+      console.log("Google Pay object created:", googlePay);
+      
+      await googlePay.attach("#google-pay");
+      console.log("Google Pay attached to container");
+      
+    } catch (error) {
+      console.error("Google Pay initialization failed:", error);
+      const googlePayTab = document.getElementById("googlepay-tab");
+      if (googlePayTab) {
+        googlePayTab.style.display = "none";
+      }
+    }
 
     // Initialize Cash App Pay with PaymentRequest
     console.log("Attempting to initialize Cash App Pay...");
@@ -364,6 +440,48 @@ async function tokenizeCard() {
   return result.token; // Square nonce
 }
 
+async function tokenizeApplePay() {
+  console.log("Starting Apple Pay tokenization...");
+  
+  if (!applePay) {
+    throw new Error("Apple Pay not initialized");
+  }
+  
+  const result = await applePay.tokenize();
+  console.log("Apple Pay tokenization result:", result);
+  
+  if (result.status !== "OK") {
+    console.error("Apple Pay tokenization failed:", result);
+    const errMsg =
+      result?.errors?.map((e) => e.message).join(", ") || "Apple Pay tokenization failed.";
+    throw new Error(errMsg);
+  }
+  
+  console.log("Apple Pay tokenization successful, token:", result.token);
+  return result.token; // Square nonce
+}
+
+async function tokenizeGooglePay() {
+  console.log("Starting Google Pay tokenization...");
+  
+  if (!googlePay) {
+    throw new Error("Google Pay not initialized");
+  }
+  
+  const result = await googlePay.tokenize();
+  console.log("Google Pay tokenization result:", result);
+  
+  if (result.status !== "OK") {
+    console.error("Google Pay tokenization failed:", result);
+    const errMsg =
+      result?.errors?.map((e) => e.message).join(", ") || "Google Pay tokenization failed.";
+    throw new Error(errMsg);
+  }
+  
+  console.log("Google Pay tokenization successful, token:", result.token);
+  return result.token; // Square nonce
+}
+
 async function tokenizeCashAppPay() {
   if (!cashAppPay) {
     throw new Error("Cash App Pay not initialized");
@@ -449,24 +567,46 @@ async function onPay() {
   btn.disabled = true;
   
   // Update button text based on payment method
-  if (selectedPaymentMethod === "cashapp") {
-    btn.innerHTML = `<span class="spinner"></span>&nbsp;Completing Cash App Payment…`;
-  } else {
-    btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Card Payment…`;
+  switch (selectedPaymentMethod) {
+    case "card":
+      btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Card Payment…`;
+      break;
+    case "applepay":
+      btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Apple Pay…`;
+      break;
+    case "googlepay":
+      btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Google Pay…`;
+      break;
+    case "cashapp":
+      btn.innerHTML = `<span class="spinner"></span>&nbsp;Completing Cash App Payment…`;
+      break;
+    default:
+      btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing Payment…`;
   }
 
   try {
     let nonce;
     
     // Tokenize based on selected payment method
-    if (selectedPaymentMethod === "card") {
-      setStatus("info", "Processing your card payment...");
-      nonce = await tokenizeCard();
-    } else if (selectedPaymentMethod === "cashapp") {
-      setStatus("info", "Completing your Cash App payment...");
-      nonce = await tokenizeCashAppPay();
-    } else {
-      throw new Error("No payment method selected");
+    switch (selectedPaymentMethod) {
+      case "card":
+        setStatus("info", "Processing your card payment...");
+        nonce = await tokenizeCard();
+        break;
+      case "applepay":
+        setStatus("info", "Processing your Apple Pay payment...");
+        nonce = await tokenizeApplePay();
+        break;
+      case "googlepay":
+        setStatus("info", "Processing your Google Pay payment...");
+        nonce = await tokenizeGooglePay();
+        break;
+      case "cashapp":
+        setStatus("info", "Completing your Cash App payment...");
+        nonce = await tokenizeCashAppPay();
+        break;
+      default:
+        throw new Error("No payment method selected");
     }
     
     setStatus("info", "Finalizing payment with merchant...");
