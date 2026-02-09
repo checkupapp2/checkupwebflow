@@ -208,21 +208,54 @@ async function initSquare() {
     console.log("Card attached to container");
 
     // Initialize Cash App Pay
+    console.log("Attempting to initialize Cash App Pay...");
+    console.log("Current URL:", window.location.href);
+    
     try {
+      // Check if payments object supports Cash App Pay
+      if (typeof payments.cashAppPay !== 'function') {
+        throw new Error("Cash App Pay method not available on payments object");
+      }
+      
+      // Initialize Cash App Pay with proper configuration
       cashAppPay = await payments.cashAppPay({
         redirectURL: window.location.href,
         referenceId: crypto.randomUUID()
       });
+      
       console.log("Cash App Pay object created:", cashAppPay);
       
+      // Attach to container
       await cashAppPay.attach("#cash-app-pay");
       console.log("Cash App Pay attached to container");
-    } catch (error) {
-      console.error("Cash App Pay initialization failed:", error);
-      // Hide the Cash App Pay container if initialization fails
+      
+      // Make sure container is visible
       const cashAppContainer = document.getElementById("cash-app-pay");
       if (cashAppContainer) {
-        cashAppContainer.style.display = "none";
+        cashAppContainer.style.display = "block";
+        cashAppContainer.style.marginTop = "12px";
+        console.log("Cash App Pay container made visible");
+      }
+      
+    } catch (error) {
+      console.error("Cash App Pay initialization failed:", error);
+      console.error("Error details:", error.message, error.stack);
+      
+      // Show debugging information
+      const cashAppContainer = document.getElementById("cash-app-pay");
+      if (cashAppContainer) {
+        let errorMsg = error.message;
+        if (errorMsg.includes('not available') || errorMsg.includes('not supported')) {
+          errorMsg = "Cash App Pay not available in sandbox environment";
+        }
+        
+        cashAppContainer.innerHTML = `<div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 12px; text-align: center;">
+          <strong>Cash App Pay Debug:</strong><br>
+          ${errorMsg}<br>
+          <small>Check browser console for details</small>
+        </div>`;
+        cashAppContainer.style.display = "block";
+        cashAppContainer.style.marginTop = "12px";
       }
     }
 
