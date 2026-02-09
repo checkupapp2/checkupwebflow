@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Checkout</title>
 
-    <!-- Square Web Payments SDK (Sandbox) -->
-    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+    <!-- Square Web Payments SDK (Sandbox) - Latest Version -->
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v2/square.js"></script>
 
     <style>
       :root {
@@ -58,39 +58,10 @@
       .amount .value { font-size: 24px; font-weight: 800; }
 
       .row { margin-top: 12px; }
-      .payment-methods {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-      }
-      .payment-method {
-        flex: 1;
-        padding: 12px 8px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: rgba(255,255,255,.05);
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .payment-method.active {
-        border-color: var(--accent);
-        background: rgba(245,158,11,.15);
-        color: var(--accent);
-      }
-      .payment-method:hover {
-        background: rgba(255,255,255,.08);
-      }
-      #card-container, #cash-app-pay-container {
+      #card-container {
         padding: 14px;
         border-radius: 14px;
         background: #ffffff;
-        display: none;
-      }
-      #card-container.active, #cash-app-pay-container.active {
-        display: block;
       }
 
       .btn {
@@ -141,20 +112,14 @@
     <div class="wrap">
       <div class="card">
         <p class="title">Checkout</p>
-        <p class="sub">Choose your payment method and complete payment.</p>
+        <p class="sub">Enter your card details to complete payment.</p>
 
         <div class="amount">
           <div class="label">Amount</div>
           <div class="value" id="amountText">$0.00</div>
         </div>
 
-        <div class="payment-methods">
-          <div class="payment-method active" data-method="card">💳 Card</div>
-          <div class="payment-method" data-method="cash-app-pay">💸 Cash App Pay</div>
-        </div>
-
-        <div class="row active" id="card-container"></div>
-        <div class="row" id="cash-app-pay-container"></div>
+        <div class="row" id="card-container"></div>
 
         <button id="payBtn" class="btn" disabled>Pay</button>
 
