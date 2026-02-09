@@ -89,6 +89,7 @@ function setTokenReady(isReady) {
 
 let firebaseIdToken = null;
 let card = null;
+let cashAppPay = null;
 let payments = null;
 
 const q = getQuery();
@@ -206,7 +207,26 @@ async function initSquare() {
     await card.attach("#card-container");
     console.log("Card attached to container");
 
-    setStatus("info", "Enter card details, then tap Pay.");
+    // Initialize Cash App Pay
+    try {
+      cashAppPay = await payments.cashAppPay({
+        redirectURL: window.location.href,
+        referenceId: crypto.randomUUID()
+      });
+      console.log("Cash App Pay object created:", cashAppPay);
+      
+      await cashAppPay.attach("#cash-app-pay");
+      console.log("Cash App Pay attached to container");
+    } catch (error) {
+      console.error("Cash App Pay initialization failed:", error);
+      // Hide the Cash App Pay container if initialization fails
+      const cashAppContainer = document.getElementById("cash-app-pay");
+      if (cashAppContainer) {
+        cashAppContainer.style.display = "none";
+      }
+    }
+
+    setStatus("info", "Enter card details or use Cash App Pay, then tap Pay.");
     log("Square initialized successfully");
   } catch (error) {
     console.error("Square initialization error details:", error);
@@ -220,6 +240,19 @@ async function tokenizeCard() {
   if (result.status !== "OK") {
     const errMsg =
       result?.errors?.map((e) => e.message).join(", ") || "Card tokenization failed.";
+    throw new Error(errMsg);
+  }
+  return result.token; // Square nonce
+}
+
+async function tokenizeCashAppPay() {
+  if (!cashAppPay) {
+    throw new Error("Cash App Pay not initialized");
+  }
+  const result = await cashAppPay.tokenize();
+  if (result.status !== "OK") {
+    const errMsg =
+      result?.errors?.map((e) => e.message).join(", ") || "Cash App Pay tokenization failed.";
     throw new Error(errMsg);
   }
   return result.token; // Square nonce
