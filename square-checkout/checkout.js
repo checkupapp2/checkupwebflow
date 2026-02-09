@@ -3,8 +3,8 @@
 ========================= */
 
 // Sandbox Square App ID and Location ID
-const SQUARE_APP_ID = "sandbox-sq0idb-5awH7pRxnmXlok7AeOD2gA";
-const SQUARE_LOCATION_ID = "LA65TW7HVTEQY";
+const SQUARE_APP_ID = "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg";
+const SQUARE_LOCATION_ID = "TC4Z3ZEBKRXRH";
 
 // Your deployed HTTP Cloud Function
 const CREATE_PAYMENT_URL =
@@ -92,6 +92,7 @@ let card = null;
 let ach = null;
 let googlePay = null;
 let applePay = null;
+let cashAppPay = null;
 let payments = null;
 let currentPaymentMethod = 'card';
 
@@ -193,6 +194,7 @@ async function initSquare() {
   await initACHPayment();
   await initGooglePay();
   await initApplePay();
+  await initCashAppPay();
   
   // Set up payment method switching
   setupPaymentMethodSwitching();
@@ -220,6 +222,10 @@ async function tokenizePaymentMethod() {
     case 'apple-pay':
       if (!applePay) throw new Error('Apple Pay not initialized');
       result = await applePay.tokenize();
+      break;
+    case 'cash-app-pay':
+      if (!cashAppPay) throw new Error('Cash App Pay not initialized');
+      result = await cashAppPay.tokenize();
       break;
     default:
       throw new Error('Unknown payment method');
@@ -300,6 +306,22 @@ async function initApplePay() {
     // Hide Apple Pay option if not available
     const applePayOption = document.querySelector('[data-method="apple-pay"]');
     if (applePayOption) applePayOption.style.display = 'none';
+  }
+}
+
+async function initCashAppPay() {
+  try {
+    cashAppPay = await payments.cashAppPay({
+      redirectURL: window.location.href,
+      referenceId: crypto.randomUUID()
+    });
+    await cashAppPay.attach("#cash-app-pay-container");
+    log("Cash App Pay initialized");
+  } catch (e) {
+    log("Cash App Pay failed to initialize:", e);
+    // Hide Cash App Pay option if not available
+    const cashAppPayOption = document.querySelector('[data-method="cash-app-pay"]');
+    if (cashAppPayOption) cashAppPayOption.style.display = 'none';
   }
 }
 
