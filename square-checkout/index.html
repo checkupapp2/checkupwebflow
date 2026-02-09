@@ -64,39 +64,105 @@
         background: #ffffff;
       }
 
-      .payment-methods { margin-top: 16px; }
-      .payment-option {
-        margin-bottom: 16px;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 16px;
-        background: rgba(255,255,255,0.02);
-      }
-      .payment-option.active {
-        border-color: var(--accent);
-        background: rgba(245,158,11,0.05);
-      }
-      .payment-header {
+      .payment-selector { margin-top: 20px; }
+      
+      .selector-tabs {
         display: flex;
-        align-items: center;
         gap: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 20px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 16px;
+        padding: 6px;
       }
-      .payment-header input[type="radio"] {
-        margin: 0;
-      }
-      .payment-header label {
-        font-weight: 600;
-        font-size: 14px;
+      
+      .tab-button {
+        flex: 1;
+        background: transparent;
+        border: none;
+        border-radius: 12px;
+        padding: 16px 12px;
         cursor: pointer;
-        margin: 0;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-family: inherit;
+        min-height: 80px;
+        position: relative;
+        overflow: hidden;
       }
-      .payment-option .row {
-        margin-top: 0;
+      
+      .tab-button:hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+      }
+      
+      .tab-button.active {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        transform: translateY(-1px);
+      }
+      
+      .tab-button.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+        border-radius: 12px;
+      }
+      
+      .tab-icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+      
+      .tab-label {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      
+      .payment-forms {
+        position: relative;
+        min-height: 120px;
+      }
+      
+      .payment-form {
         display: none;
+        animation: fadeIn 0.3s ease;
       }
-      .payment-option.active .row {
+      
+      .payment-form.active {
         display: block;
+      }
+      
+      .payment-form .row {
+        margin-top: 0;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* Mobile optimizations */
+      @media (max-width: 480px) {
+        .tab-button {
+          padding: 14px 8px;
+          min-height: 70px;
+        }
+        .tab-icon {
+          font-size: 20px;
+        }
+        .tab-label {
+          font-size: 12px;
+        }
       }
 
       .btn {
@@ -155,21 +221,25 @@
         </div>
 
         <!-- Payment Method Selection -->
-        <div class="payment-methods">
-          <div class="payment-option" id="card-option">
-            <div class="payment-header">
-              <input type="radio" name="payment-method" id="card-radio" value="card" checked>
-              <label for="card-radio">Credit Card</label>
-            </div>
-            <div class="row" id="card-container"></div>
+        <div class="payment-selector">
+          <div class="selector-tabs">
+            <button class="tab-button active" id="card-tab" data-method="card">
+              <div class="tab-icon">💳</div>
+              <div class="tab-label">Card</div>
+            </button>
+            <button class="tab-button" id="cashapp-tab" data-method="cashapp">
+              <div class="tab-icon">📱</div>
+              <div class="tab-label">Cash App</div>
+            </button>
           </div>
-
-          <div class="payment-option" id="cashapp-option">
-            <div class="payment-header">
-              <input type="radio" name="payment-method" id="cashapp-radio" value="cashapp">
-              <label for="cashapp-radio">Cash App Pay</label>
+          
+          <div class="payment-forms">
+            <div class="payment-form active" id="card-form">
+              <div class="row" id="card-container"></div>
             </div>
-            <div class="row" id="cash-app-pay"></div>
+            <div class="payment-form" id="cashapp-form">
+              <div class="row" id="cash-app-pay"></div>
+            </div>
           </div>
         </div>
 

@@ -171,32 +171,41 @@ function postToApp(payload) {
 ========================= */
 
 function initializePaymentMethodSelection() {
-  const cardOption = document.getElementById("card-option");
-  const cashappOption = document.getElementById("cashapp-option");
-  const cardRadio = document.getElementById("card-radio");
-  const cashappRadio = document.getElementById("cashapp-radio");
+  const cardTab = document.getElementById("card-tab");
+  const cashappTab = document.getElementById("cashapp-tab");
+  const cardForm = document.getElementById("card-form");
+  const cashappForm = document.getElementById("cashapp-form");
   
   // Set initial state
-  cardOption.classList.add("active");
   selectedPaymentMethod = "card";
   
-  // Add event listeners
-  cardRadio.addEventListener("change", function() {
-    if (this.checked) {
-      selectedPaymentMethod = "card";
-      cardOption.classList.add("active");
-      cashappOption.classList.remove("active");
-      setStatus("info", "Enter your card details, then tap Pay.");
-    }
+  // Add event listeners for tab buttons
+  cardTab.addEventListener("click", function() {
+    selectedPaymentMethod = "card";
+    
+    // Update tab states
+    cardTab.classList.add("active");
+    cashappTab.classList.remove("active");
+    
+    // Update form visibility
+    cardForm.classList.add("active");
+    cashappForm.classList.remove("active");
+    
+    setStatus("info", "Enter your card details, then tap Pay.");
   });
   
-  cashappRadio.addEventListener("change", function() {
-    if (this.checked) {
-      selectedPaymentMethod = "cashapp";
-      cashappOption.classList.add("active");
-      cardOption.classList.remove("active");
-      setStatus("info", "Use Cash App Pay to complete your payment.");
-    }
+  cashappTab.addEventListener("click", function() {
+    selectedPaymentMethod = "cashapp";
+    
+    // Update tab states
+    cashappTab.classList.add("active");
+    cardTab.classList.remove("active");
+    
+    // Update form visibility
+    cashappForm.classList.add("active");
+    cardForm.classList.remove("active");
+    
+    setStatus("info", "Use Cash App Pay to complete your payment.");
   });
 }
 
@@ -280,10 +289,10 @@ async function initSquare() {
       console.error("Cash App Pay initialization failed:", error);
       console.error("Error details:", error.message, error.stack);
       
-      // Hide the Cash App Pay option if initialization fails
-      const cashAppOption = document.getElementById("cashapp-option");
-      if (cashAppOption) {
-        cashAppOption.style.display = "none";
+      // Hide the Cash App Pay tab if initialization fails
+      const cashAppTab = document.getElementById("cashapp-tab");
+      if (cashAppTab) {
+        cashAppTab.style.display = "none";
       }
     }
 
