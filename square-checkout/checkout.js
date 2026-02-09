@@ -175,27 +175,47 @@ async function initSquare() {
     return;
   }
 
+  // Add more detailed debugging for SDK loading
+  console.log("Checking Square SDK availability...");
+  console.log("window.Square:", window.Square);
+  
   if (!window.Square) {
-    setStatus("err", "Square Web Payments SDK failed to load.");
+    setStatus("err", "Square Web Payments SDK failed to load. Please check your internet connection and try again.");
+    console.error("Square SDK not found on window object");
     return;
   }
 
+  console.log("Square SDK loaded successfully");
+  console.log("Square.payments function:", typeof window.Square.payments);
+
   try {
+    console.log("Initializing Square payments with:", SQUARE_APP_ID, SQUARE_LOCATION_ID);
     payments = window.Square.payments(SQUARE_APP_ID, SQUARE_LOCATION_ID);
+    console.log("Payments object created:", payments);
 
     card = await payments.card({
       style: {
         input: {
           fontSize: '14px',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+          color: '#000000',
+          backgroundColor: '#ffffff'
+        },
+        '.input-container': {
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb'
         }
       }
     });
+    console.log("Card object created:", card);
+    
     await card.attach("#card-container");
+    console.log("Card attached to container");
 
     setStatus("info", "Enter card details, then tap Pay.");
-    log("Square initialized");
+    log("Square initialized successfully");
   } catch (error) {
+    console.error("Square initialization error details:", error);
     setStatus("err", `Square initialization failed: ${error.message}`);
     log("Square init error:", error);
   }
@@ -303,4 +323,11 @@ $("payBtn")?.addEventListener("click", onPay);
 
 /* Start */
 setTokenReady(false);
-initSquare();
+
+// Wait for DOM and Square SDK to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Give the Square SDK a moment to fully initialize
+  setTimeout(() => {
+    initSquare();
+  }, 100);
+});
