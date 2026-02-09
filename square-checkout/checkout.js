@@ -199,6 +199,18 @@ async function initSquare() {
   // Set up payment method switching
   setupPaymentMethodSwitching();
 
+  // Show payment method selector after all methods are initialized
+  const paymentMethodsContainer = document.querySelector('.payment-methods');
+  if (paymentMethodsContainer) {
+    paymentMethodsContainer.classList.add('ready');
+  }
+
+  // Update subtitle text when multiple payment methods are available
+  const subtitle = document.getElementById('checkout-subtitle');
+  if (subtitle) {
+    subtitle.textContent = "Choose your payment method and complete payment.";
+  }
+
   setStatus("info", "Choose your payment method and complete payment.");
   log("Square initialized with multiple payment methods");
 }

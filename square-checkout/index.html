@@ -89,8 +89,17 @@
         background: #ffffff;
         display: none;
       }
+      #card-container {
+        display: block;
+      }
       #card-container.active, #ach-container.active, #google-pay-container.active, #apple-pay-container.active, #cash-app-pay-container.active {
         display: block;
+      }
+      .payment-methods {
+        display: none;
+      }
+      .payment-methods.ready {
+        display: flex;
       }
 
       .btn {
@@ -141,7 +150,7 @@
     <div class="wrap">
       <div class="card">
         <p class="title">Checkout</p>
-        <p class="sub">Enter your card details to complete payment.</p>
+        <p class="sub" id="checkout-subtitle">Enter your card details to complete payment.</p>
 
         <div class="amount">
           <div class="label">Amount</div>
