@@ -115,6 +115,15 @@ if ($("amountText")) {
   });
 }
 
+// Show payment methods after a short delay as fallback
+setTimeout(() => {
+  const paymentMethodsContainer = document.querySelector('.payment-methods');
+  if (paymentMethodsContainer && !paymentMethodsContainer.classList.contains('ready')) {
+    paymentMethodsContainer.classList.add('ready');
+    log("Payment method selector shown via fallback");
+  }
+}, 3000);
+
 /* =========================
    Receive token from Flutter
    (WebView postMessage)
@@ -203,6 +212,9 @@ async function initSquare() {
   const paymentMethodsContainer = document.querySelector('.payment-methods');
   if (paymentMethodsContainer) {
     paymentMethodsContainer.classList.add('ready');
+    log("Payment method selector made visible");
+  } else {
+    log("ERROR: Payment methods container not found");
   }
 
   // Update subtitle text when multiple payment methods are available

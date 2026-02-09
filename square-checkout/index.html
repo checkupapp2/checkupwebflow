@@ -97,10 +97,13 @@
         display: block;
       }
       #cash-app-pay-container {
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         flex-direction: column;
+      }
+      #cash-app-pay-container.active {
+        display: flex !important;
       }
       .payment-methods {
         display: none;
