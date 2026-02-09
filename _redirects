@@ -1,0 +1,12 @@
+# Redirect /home to root
+/home / 301
+
+# Handle trailing slashes
+/shop/ /shop.html 301
+/gallery/ /gallery.html 301
+
+# Handle old URLs (if any)
+/index /index.html 301
+
+# 404 fallback
+/* /index.html 404
