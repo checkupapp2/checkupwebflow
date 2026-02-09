@@ -10,35 +10,77 @@
 
     <style>
       :root {
-        --bg: #0b0b0b;
-        --card: #121212;
+        --bg: #1a1a1a;
+        --card: #2a2a2a;
+        --card-light: #3a3a3a;
         --text: #ffffff;
+        --text-secondary: #a0a0a0;
         --muted: rgba(255,255,255,.65);
-        --accent: #f59e0b;
+        --accent: #ff6b35;
+        --accent-dark: #e55a2b;
         --danger: #ef4444;
         --ok: #22c55e;
-        --border: rgba(255,255,255,.12);
+        --border: rgba(255,255,255,.1);
+        --border-light: rgba(255,255,255,.05);
       }
 
       html, body { height: 100%; }
       body {
         margin: 0;
-        background: radial-gradient(1200px 600px at 50% 10%, rgba(245,158,11,.18), transparent),
-                    radial-gradient(1000px 500px at 20% 80%, rgba(245,158,11,.10), transparent),
-                    var(--bg);
+        background: var(--bg);
         color: var(--text);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        display: grid;
-        place-items: center;
+        padding: 20px;
+        min-height: 100vh;
       }
 
-      .wrap { width: min(440px, calc(100% - 32px)); }
+      .wrap { 
+        max-width: 440px; 
+        margin: 0 auto;
+      }
+      
       .card {
-        background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+        background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 22px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.45);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+      }
+      
+      .price-breakdown {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .price-breakdown h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      
+      .price-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+      
+      .price-item:last-child {
+        border-bottom: none;
+        margin-top: 8px;
+        padding: 16px;
+        background: var(--accent);
+        border-radius: 12px;
+        color: #000;
+        font-weight: 700;
+      }
+      
+      .price-item.savings .amount {
+        color: var(--ok);
       }
 
       .title { font-size: 18px; font-weight: 700; margin: 0 0 8px; letter-spacing: .2px; }
@@ -64,84 +106,78 @@
         background: #ffffff;
       }
 
-      .payment-selector { margin-top: 20px; }
-      
-      .selector-tabs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-bottom: 24px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 20px;
-        padding: 8px;
+      .payment-methods h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
       }
       
-      .tab-button {
-        background: transparent;
-        border: none;
-        border-radius: 16px;
-        padding: 20px 12px;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      .payment-option {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 8px;
-        color: var(--muted);
-        font-family: inherit;
-        min-height: 90px;
-        position: relative;
-        overflow: hidden;
-        backdrop-filter: blur(10px);
-      }
-      
-      .tab-button:hover {
-        background: rgba(255,255,255,0.05);
-        color: var(--text);
-      }
-      
-      .tab-button.active {
-        background: var(--accent);
-        color: #000;
-        box-shadow: 0 4px 12px rgba(245,158,11,0.3);
-        transform: translateY(-1px);
-      }
-      
-      .tab-button.active::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+        padding: 16px;
+        margin-bottom: 12px;
+        background: var(--card-light);
+        border: 2px solid transparent;
         border-radius: 12px;
-      }
-      
-      .tab-icon {
-        font-size: 28px;
-        line-height: 1;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-      }
-      
-      .tab-label {
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-      }
-      
-      .payment-forms {
+        cursor: pointer;
+        transition: all 0.3s ease;
         position: relative;
-        min-height: 120px;
+      }
+      
+      .payment-option:hover {
+        background: rgba(255,255,255,0.05);
+      }
+      
+      .payment-option.active {
+        border-color: var(--accent);
+        background: rgba(255,107,53,0.1);
+      }
+      
+      .payment-option input[type="radio"] {
+        position: absolute;
+        right: 16px;
+        width: 20px;
+        height: 20px;
+        accent-color: var(--accent);
+      }
+      
+      .payment-icon {
+        font-size: 24px;
+        margin-right: 16px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+      }
+      
+      .payment-info {
+        flex: 1;
+      }
+      
+      .payment-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      
+      .payment-desc {
+        font-size: 14px;
+        color: var(--text-secondary);
       }
       
       .payment-form {
         display: none;
-        animation: fadeIn 0.3s ease;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-light);
+        width: 100%;
       }
       
-      .payment-form.active {
+      .payment-option.active .payment-form {
         display: block;
       }
       
@@ -149,46 +185,23 @@
         margin-top: 0;
       }
       
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      /* Mobile optimizations */
-      @media (max-width: 480px) {
-        .selector-tabs {
-          gap: 6px;
-          padding: 6px;
-        }
-        .tab-button {
-          padding: 16px 8px;
-          min-height: 80px;
-        }
-        .tab-icon {
-          font-size: 24px;
-        }
-        .tab-label {
-          font-size: 10px;
-        }
-        .wrap {
-          width: calc(100% - 16px);
-        }
-        .card {
-          padding: 20px;
-        }
+      .quantity {
+        color: var(--text-secondary);
+        font-size: 14px;
       }
 
       .btn {
-        margin-top: 14px;
+        margin-top: 20px;
         width: 100%;
         border: 0;
-        border-radius: 14px;
-        padding: 14px 16px;
-        font-size: 15px;
+        border-radius: 12px;
+        padding: 16px;
+        font-size: 16px;
         font-weight: 700;
         background: var(--accent);
-        color: #111827;
+        color: #000;
         cursor: pointer;
+        transition: all 0.2s;
       }
       .btn[disabled] { opacity: .55; cursor: not-allowed; }
 
@@ -233,36 +246,77 @@
           <div class="value" id="amountText">$0.00</div>
         </div>
 
-        <!-- Payment Method Selection -->
-        <div class="payment-selector">
-          <div class="selector-tabs">
-            <button class="tab-button active" id="card-tab" data-method="card">
-              <div class="tab-icon">💳</div>
-              <div class="tab-label">Card</div>
-            </button>
-            <button class="tab-button" id="applepay-tab" data-method="applepay">
-              <div class="tab-icon">🍎</div>
-              <div class="tab-label">Apple Pay</div>
-            </button>
-            <button class="tab-button" id="googlepay-tab" data-method="googlepay">
-              <div class="tab-icon">🅖</div>
-              <div class="tab-label">Google Pay</div>
-            </button>
-            <button class="tab-button" id="cashapp-tab" data-method="cashapp">
-              <div class="tab-icon">📱</div>
-              <div class="tab-label">Cash App</div>
-            </button>
+        <!-- Price Breakdown -->
+        <div class="price-breakdown">
+          <h3>Price Breakdown</h3>
+          <div class="price-item">
+            <span>Original Price <span class="quantity">$75.00 × 1</span></span>
+            <span class="amount">$75.00</span>
           </div>
+          <div class="price-item">
+            <span>Discounted Price <span class="quantity">$73.17 × 1</span></span>
+            <span class="amount">$73.17</span>
+          </div>
+          <div class="price-item savings">
+            <span>Savings</span>
+            <span class="amount">-$1.83</span>
+          </div>
+          <div class="price-item">
+            <span>Service Fee <span class="quantity">10%</span></span>
+            <span class="amount">$7.50</span>
+          </div>
+          <div class="price-item">
+            <span>Total Amount</span>
+            <span class="amount" id="amountText">$82.50</span>
+          </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="payment-methods">
+          <h3>Payment Method</h3>
           
-          <div class="payment-forms">
-            <div class="payment-form active" id="card-form">
+          <div class="payment-option active" id="card-option">
+            <input type="radio" name="payment-method" id="card-radio" value="card" checked>
+            <div class="payment-icon">💳</div>
+            <div class="payment-info">
+              <div class="payment-name">Credit Card</div>
+              <div class="payment-desc">Visa, Mastercard, Amex</div>
+            </div>
+            <div class="payment-form" id="card-form">
               <div class="row" id="card-container"></div>
+            </div>
+          </div>
+
+          <div class="payment-option" id="applepay-option">
+            <input type="radio" name="payment-method" id="applepay-radio" value="applepay">
+            <div class="payment-icon">🍎</div>
+            <div class="payment-info">
+              <div class="payment-name">Apple Pay</div>
+              <div class="payment-desc">Pay with Apple</div>
             </div>
             <div class="payment-form" id="applepay-form">
               <div class="row" id="apple-pay"></div>
             </div>
+          </div>
+
+          <div class="payment-option" id="googlepay-option">
+            <input type="radio" name="payment-method" id="googlepay-radio" value="googlepay">
+            <div class="payment-icon">🅖</div>
+            <div class="payment-info">
+              <div class="payment-name">Google Pay</div>
+              <div class="payment-desc">Pay with Google</div>
+            </div>
             <div class="payment-form" id="googlepay-form">
               <div class="row" id="google-pay"></div>
+            </div>
+          </div>
+
+          <div class="payment-option" id="cashapp-option">
+            <input type="radio" name="payment-method" id="cashapp-radio" value="cashapp">
+            <div class="payment-icon">💰</div>
+            <div class="payment-info">
+              <div class="payment-name">Cash App</div>
+              <div class="payment-desc">Pay with Cash App</div>
             </div>
             <div class="payment-form" id="cashapp-form">
               <div class="row" id="cash-app-pay"></div>

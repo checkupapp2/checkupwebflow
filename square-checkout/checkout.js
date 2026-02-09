@@ -173,18 +173,17 @@ function postToApp(payload) {
 ========================= */
 
 function initializePaymentMethodSelection() {
-  const cardTab = document.getElementById("card-tab");
-  const applePayTab = document.getElementById("applepay-tab");
-  const googlePayTab = document.getElementById("googlepay-tab");
-  const cashappTab = document.getElementById("cashapp-tab");
+  const cardOption = document.getElementById("card-option");
+  const applePayOption = document.getElementById("applepay-option");
+  const googlePayOption = document.getElementById("googlepay-option");
+  const cashappOption = document.getElementById("cashapp-option");
   
-  const cardForm = document.getElementById("card-form");
-  const applePayForm = document.getElementById("applepay-form");
-  const googlePayForm = document.getElementById("googlepay-form");
-  const cashappForm = document.getElementById("cashapp-form");
+  const cardRadio = document.getElementById("card-radio");
+  const applePayRadio = document.getElementById("applepay-radio");
+  const googlePayRadio = document.getElementById("googlepay-radio");
+  const cashappRadio = document.getElementById("cashapp-radio");
   
-  const allTabs = [cardTab, applePayTab, googlePayTab, cashappTab];
-  const allForms = [cardForm, applePayForm, googlePayForm, cashappForm];
+  const allOptions = [cardOption, applePayOption, googlePayOption, cashappOption];
   
   // Set initial state
   selectedPaymentMethod = "card";
@@ -213,41 +212,58 @@ function initializePaymentMethodSelection() {
   }
   
   // Function to switch payment method
-  function switchPaymentMethod(method, activeTab, activeForm) {
+  function switchPaymentMethod(method, activeOption) {
     selectedPaymentMethod = method;
     
-    // Update tab states
-    allTabs.forEach(tab => tab?.classList.remove("active"));
-    activeTab?.classList.add("active");
-    
-    // Update form visibility
-    allForms.forEach(form => form?.classList.remove("active"));
-    activeForm?.classList.add("active");
+    // Update option states
+    allOptions.forEach(option => option?.classList.remove("active"));
+    activeOption?.classList.add("active");
     
     updatePayButtonState();
   }
   
   updatePayButtonState();
   
-  // Add event listeners for all tabs
-  cardTab?.addEventListener("click", function() {
-    switchPaymentMethod("card", cardTab, cardForm);
-    setStatus("info", "Enter your card details, then tap Pay.");
+  // Add event listeners for radio buttons
+  cardRadio?.addEventListener("change", function() {
+    if (this.checked) {
+      switchPaymentMethod("card", cardOption);
+      setStatus("info", "Enter your card details, then tap Pay.");
+    }
   });
   
-  applePayTab?.addEventListener("click", function() {
-    switchPaymentMethod("applepay", applePayTab, applePayForm);
-    setStatus("info", "Use Apple Pay for quick and secure checkout.");
+  applePayRadio?.addEventListener("change", function() {
+    if (this.checked) {
+      switchPaymentMethod("applepay", applePayOption);
+      setStatus("info", "Use Apple Pay for quick and secure checkout.");
+    }
   });
   
-  googlePayTab?.addEventListener("click", function() {
-    switchPaymentMethod("googlepay", googlePayTab, googlePayForm);
-    setStatus("info", "Use Google Pay for fast and secure payment.");
+  googlePayRadio?.addEventListener("change", function() {
+    if (this.checked) {
+      switchPaymentMethod("googlepay", googlePayOption);
+      setStatus("info", "Use Google Pay for fast and secure payment.");
+    }
   });
   
-  cashappTab?.addEventListener("click", function() {
-    switchPaymentMethod("cashapp", cashappTab, cashappForm);
-    setStatus("info", "Click the Cash App Pay button above, then tap Pay to complete your purchase.");
+  cashappRadio?.addEventListener("change", function() {
+    if (this.checked) {
+      switchPaymentMethod("cashapp", cashappOption);
+      setStatus("info", "Click the Cash App Pay button above, then tap Pay to complete your purchase.");
+    }
+  });
+  
+  // Add click handlers for the entire payment option
+  allOptions.forEach(option => {
+    option?.addEventListener("click", function(e) {
+      if (e.target.type !== "radio") {
+        const radio = option.querySelector('input[type="radio"]');
+        if (radio) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change'));
+        }
+      }
+    });
   });
 }
 
