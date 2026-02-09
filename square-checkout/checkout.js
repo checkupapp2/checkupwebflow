@@ -3,8 +3,8 @@
 ========================= */
 
 // Sandbox Square App ID and Location ID
-const SQUARE_APP_ID = "sandbox-sq0idb-5awH7pRxnmXlok7AeOD2gA";
-const SQUARE_LOCATION_ID = "LA65TW7HVTEQY";
+const SQUARE_APP_ID = "sandbox-sq0idb-RT3u-HhCpNdbMiGg5aXuVg";
+const SQUARE_LOCATION_ID = "TC4Z3ZEBKRXRH";
 
 // Your deployed HTTP Cloud Function
 const CREATE_PAYMENT_URL =
