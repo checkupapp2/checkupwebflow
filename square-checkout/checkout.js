@@ -293,53 +293,118 @@ async function initSquare() {
     await card.attach("#card-container");
     console.log("Card attached to container");
 
-    // Initialize Apple Pay
-    console.log("Attempting to initialize Apple Pay...");
-    console.log("Available payment methods:", Object.keys(payments));
+    // Initialize Apple Pay with detailed debugging
+    console.log("=== APPLE PAY INITIALIZATION DEBUG ===");
+    console.log("1. Browser User Agent:", navigator.userAgent);
+    console.log("2. Available payment methods:", Object.keys(payments));
+    console.log("3. Apple Pay method type:", typeof payments.applePay);
+    console.log("4. Current domain:", window.location.hostname);
+    console.log("5. Protocol:", window.location.protocol);
+    
+    // Check if we're in a supported environment
+    const isAppleDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                         navigator.platform === 'MacIntel';
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    console.log("6. Is Apple device:", isAppleDevice);
+    console.log("7. Is Safari:", isSafari);
+    console.log("8. Touch points:", navigator.maxTouchPoints);
+    console.log("9. Platform:", navigator.platform);
+    
+    // Check if Apple Pay is available in the browser
+    const hasApplePayJS = window.ApplePaySession && ApplePaySession.canMakePayments;
+    console.log("10. ApplePaySession available:", !!window.ApplePaySession);
+    console.log("11. Can make payments:", hasApplePayJS);
+    
+    if (hasApplePayJS) {
+      try {
+        const canMakePaymentsWithActiveCard = ApplePaySession.canMakePaymentsWithActiveCard('merchant.com.squareup.sandbox.checkupbasketball');
+        console.log("12. Can make payments with active card:", canMakePaymentsWithActiveCard);
+      } catch (e) {
+        console.log("12. Error checking active card:", e.message);
+      }
+    }
     
     try {
       // Check if Apple Pay is available first
       if (typeof payments.applePay !== 'function') {
-        console.warn("Apple Pay method not available on payments object");
+        console.error("❌ Apple Pay method not available on payments object");
         throw new Error("Apple Pay not supported by Square SDK");
       }
       
-      // Create payment request for Apple Pay
+      console.log("✅ Apple Pay method found on payments object");
+      
+      // Create payment request for Apple Pay with more detailed config
       const applePayRequest = payments.paymentRequest({
         countryCode: 'US',
         currencyCode: q.currency,
         total: {
           amount: (q.amountCents / 100).toFixed(2),
-          label: 'Total',
-        }
+          label: 'Checkup Basketball',
+        },
+        requestShipping: false,
+        requestBillingAddress: false
       });
       
-      console.log("Apple Pay PaymentRequest created:", applePayRequest);
+      console.log("✅ Apple Pay PaymentRequest created:", applePayRequest);
       
       // Try to initialize Apple Pay
+      console.log("Attempting to create Apple Pay object...");
       applePay = await payments.applePay(applePayRequest);
-      console.log("Apple Pay object created successfully:", applePay);
+      console.log("✅ Apple Pay object created successfully:", applePay);
+      
+      // Check if Apple Pay is available on this device/browser
+      if (applePay && typeof applePay.canMakePayment === 'function') {
+        const canMakePayment = await applePay.canMakePayment();
+        console.log("Apple Pay canMakePayment result:", canMakePayment);
+      }
       
       // Attach Apple Pay to container
+      console.log("Attempting to attach Apple Pay to container...");
       await applePay.attach("#apple-pay");
-      console.log("Apple Pay attached to container successfully");
+      console.log("✅ Apple Pay attached to container successfully");
       
     } catch (error) {
-      console.error("Apple Pay initialization failed:", error);
-      console.error("Apple Pay error details:", error.message, error.stack);
+      console.error("❌ Apple Pay initialization failed:", error);
+      console.error("❌ Apple Pay error details:", error.message, error.stack);
+      console.error("❌ Error name:", error.name);
+      console.error("❌ Error code:", error.code);
       
-      // Show a placeholder for Apple Pay with error info
+      // Analyze the specific error
+      let errorMsg = error.message;
+      let debugInfo = "";
+      
+      if (errorMsg.includes('domain') || errorMsg.includes('verification')) {
+        errorMsg = "Domain verification required";
+        debugInfo = "Need to verify domain with Apple";
+      } else if (errorMsg.includes('not supported') || errorMsg.includes('not available')) {
+        errorMsg = "Apple Pay not available";
+        debugInfo = "Device/browser doesn't support Apple Pay";
+      } else if (errorMsg.includes('merchant') || errorMsg.includes('identifier')) {
+        errorMsg = "Merchant configuration issue";
+        debugInfo = "Square merchant ID may need Apple Pay setup";
+      } else {
+        debugInfo = `Error: ${errorMsg}`;
+      }
+      
+      console.log("📋 Apple Pay Error Analysis:", {
+        originalError: errorMsg,
+        analysis: debugInfo,
+        domain: window.location.hostname,
+        isHTTPS: window.location.protocol === 'https:',
+        userAgent: navigator.userAgent.substring(0, 100)
+      });
+      
+      // Show a detailed placeholder for Apple Pay with error info
       const applePayContainer = document.getElementById("apple-pay");
       if (applePayContainer) {
-        let errorMsg = error.message;
-        if (errorMsg.includes('not supported') || errorMsg.includes('not available')) {
-          errorMsg = "Apple Pay not available on this device/browser";
-        }
-        
-        applePayContainer.innerHTML = `<div style="padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 13px; text-align: center;">
-          <div style="margin-bottom: 4px;">🍎</div>
-          <div style="font-weight: 600; margin-bottom: 4px;">Apple Pay</div>
-          <div style="font-size: 11px; opacity: 0.7;">${errorMsg}</div>
+        applePayContainer.innerHTML = `<div style="padding: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 13px; text-align: center;">
+          <div style="margin-bottom: 8px; font-size: 24px;">🍎</div>
+          <div style="font-weight: 600; margin-bottom: 6px;">Apple Pay Debug</div>
+          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">${errorMsg}</div>
+          <div style="font-size: 10px; opacity: 0.6;">${debugInfo}</div>
+          <div style="font-size: 10px; opacity: 0.5; margin-top: 6px;">Domain: ${window.location.hostname}</div>
         </div>`;
       }
     }
