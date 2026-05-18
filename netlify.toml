@@ -1,6 +1,7 @@
 [build]
   # No build command needed for static site
   publish = "."
+  functions = "netlify/functions"
 
 [build.environment]
   # Environment variables (if needed)
@@ -17,6 +18,48 @@
     
     # Cache static assets for 1 year
     Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/.well-known/apple-app-site-association"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/events/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/event/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/courts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/court/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/profile/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/profiles/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
 
 [[headers]]
   # Cache HTML files for 1 hour
@@ -68,11 +111,88 @@
   status = 301
 
 [[redirects]]
-  # Handle SPA routing (if needed in the future)
-  from = "/*"
-  to = "/index.html"
+  from = "/.well-known/apple-app-site-association"
+  to = "/.netlify/functions/apple-app-site-association"
   status = 200
-  conditions = {Role = ["admin"]}
+  force = true
+
+[[redirects]]
+  from = "/events/:eventId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/events/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/event/:eventId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/event/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/courts/:courtId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/courts/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/court/:courtId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/court/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/profile/:userId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/profile/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/profiles/:userId"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/profiles/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  # Unknown-route fallback for shared/deep links
+  from = "/*"
+  to = "/share-fallback.html"
+  status = 200
 
 # Form handling (if forms are added later)
 [build.processing]
