@@ -11,6 +11,9 @@
 # Association files
 /.well-known/apple-app-site-association /.netlify/functions/apple-app-site-association 200!
 
+# Public share preview API
+/api/share-preview https://us-central1-checkupv2.cloudfunctions.net/getSharePreview 200!
+
 # Shared/deep-link web fallbacks
 /events/:eventId /share-fallback.html 200!
 /events/* /share-fallback.html 200!
@@ -24,6 +27,18 @@
 /profile/* /share-fallback.html 200!
 /profiles/:userId /share-fallback.html 200!
 /profiles/* /share-fallback.html 200!
+/post/:postId /share-fallback.html 200!
+/post/* /share-fallback.html 200!
+/posts/:postId /share-fallback.html 200!
+/posts/* /share-fallback.html 200!
+/bracket/:bracketId /share-fallback.html 200!
+/bracket/* /share-fallback.html 200!
+/brackets/:bracketId /share-fallback.html 200!
+/brackets/* /share-fallback.html 200!
+/scoreboard/:gameId /share-fallback.html 200!
+/scoreboard/* /share-fallback.html 200!
+/scoreboards/:gameId /share-fallback.html 200!
+/scoreboards/* /share-fallback.html 200!
 
 # Unknown routes fall through to the deep-link fallback renderer.
 /* /share-fallback.html 200

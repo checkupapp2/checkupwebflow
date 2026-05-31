@@ -62,6 +62,36 @@
     Cache-Control = "public, max-age=3600"
 
 [[headers]]
+  for = "/post/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/posts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/bracket/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/brackets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/scoreboard/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/scoreboards/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
   # Cache HTML files for 1 hour
   for = "/*.html"
   [headers.values]
@@ -97,6 +127,12 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 # API → Firebase Function
+[[redirects]]
+  from = "/api/share-preview"
+  to = "https://us-central1-checkupv2.cloudfunctions.net/getSharePreview"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/create-square-payment"
   to = "https://us-central1-checkupv2.cloudfunctions.net/createSquarePaymentHttp"
@@ -184,6 +220,42 @@
 
 [[redirects]]
   from = "/profiles/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/post/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/posts/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/bracket/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/brackets/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/scoreboard/*"
+  to = "/share-fallback.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/scoreboards/*"
   to = "/share-fallback.html"
   status = 200
   force = true

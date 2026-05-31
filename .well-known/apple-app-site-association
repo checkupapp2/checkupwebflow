@@ -10,7 +10,13 @@
           "/courts/*",
           "/court/*",
           "/profile/*",
-          "/profiles/*"
+          "/profiles/*",
+          "/post/*",
+          "/posts/*",
+          "/bracket/*",
+          "/brackets/*",
+          "/scoreboard/*",
+          "/scoreboards/*"
         ]
       }
     ]
