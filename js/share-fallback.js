@@ -1,41 +1,45 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import {
+  doc,
+  getDoc,
+  getFirestore,
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCW4tLyyLXKa2E47fDC8-j4n9FNd2NJlr0',
+  authDomain: 'checkupv2.firebaseapp.com',
+  projectId: 'checkupv2',
+  storageBucket: 'checkupv2.firebasestorage.app',
+  messagingSenderId: '157462807418',
+  appId: '1:157462807418:web:19ea778974117618658cc3',
+};
+
 const TYPES = {
   events: {
+    collection: 'events',
     singular: 'event',
     eyebrow: 'CheckUp event',
     missingTitle: 'Event unavailable',
     missingDescription: 'This event may be private, deleted, or not available on the web.',
   },
   courts: {
+    collection: 'courts',
     singular: 'court',
     eyebrow: 'CheckUp court',
     missingTitle: 'Court unavailable',
     missingDescription: 'This court may be private, deleted, or not available on the web.',
   },
   profile: {
+    collection: 'users',
     singular: 'profile',
     eyebrow: 'CheckUp profile',
     missingTitle: 'Profile unavailable',
     missingDescription: 'This profile may be private, deleted, or not available on the web.',
   },
-  posts: {
-    singular: 'post',
-    eyebrow: 'CheckUp post',
-    missingTitle: 'Post unavailable',
-    missingDescription: 'This post may be private, deleted, or not available on the web.',
-  },
-  brackets: {
-    singular: 'bracket',
-    eyebrow: 'CheckUp bracket',
-    missingTitle: 'Bracket unavailable',
-    missingDescription: 'This bracket may be private, deleted, or not available on the web.',
-  },
-  scoreboard: {
-    singular: 'scoreboard',
-    eyebrow: 'CheckUp scoreboard',
-    missingTitle: 'Scoreboard unavailable',
-    missingDescription: 'This scoreboard may be private, deleted, or not available on the web.',
-  },
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 const card = document.getElementById('fallback-card');
 const media = document.getElementById('media');
@@ -65,10 +69,8 @@ async function main() {
   openApp.addEventListener('click', (event) => openAppLink(event, appUrl));
 
   try {
-    const response = await fetch(`/api/share-preview?type=${encodeURIComponent(route.type)}&id=${encodeURIComponent(route.id)}`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) {
+    const snapshot = await getDoc(doc(db, config.collection, route.id));
+    if (!snapshot.exists()) {
       renderUnavailable({
         eyebrowText: config.eyebrow,
         titleText: config.missingTitle,
@@ -78,20 +80,23 @@ async function main() {
       return;
     }
 
-    const data = await response.json();
+    const data = snapshot.data() || {};
+    if (isHidden(data)) {
+      renderUnavailable({
+        eyebrowText: config.eyebrow,
+        titleText: config.missingTitle,
+        descriptionText: config.missingDescription,
+        appUrl,
+      });
+      return;
+    }
 
     if (route.type === 'events') {
       renderEvent(route.id, data, appUrl);
     } else if (route.type === 'courts') {
       renderCourt(route.id, data, appUrl);
-    } else if (route.type === 'profile') {
-      renderProfile(route.id, data, appUrl);
-    } else if (route.type === 'posts') {
-      renderPost(route.id, data, appUrl);
-    } else if (route.type === 'brackets') {
-      renderBracket(route.id, data, appUrl);
     } else {
-      renderScoreboard(route.id, data, appUrl);
+      renderProfile(route.id, data, appUrl);
     }
   } catch (error) {
     console.warn('[CheckUp share fallback]', error);
@@ -115,9 +120,6 @@ function parseRoute(pathname) {
   if (rawType === 'event') return { type: 'events', id };
   if (rawType === 'court') return { type: 'courts', id };
   if (rawType === 'profiles') return { type: 'profile', id };
-  if (rawType === 'post') return { type: 'posts', id };
-  if (rawType === 'bracket') return { type: 'brackets', id };
-  if (rawType === 'scoreboards' || rawType === 'score') return { type: 'scoreboard', id };
   if (TYPES[rawType]) return { type: rawType, id };
   return null;
 }
@@ -179,59 +181,6 @@ function renderProfile(id, data, appUrl) {
       ['Role', firstString(data.profileType, roles, data.skillLevel)],
     ],
     descriptionText: publicLine,
-    appUrl,
-  });
-}
-
-function renderPost(id, data, appUrl) {
-  const image = firstString(data.imageUrl, firstFromList(data.imageUrls), data.videoThumbnailUrl);
-
-  renderPage({
-    eyebrowText: 'CheckUp post',
-    titleText: firstString(data.username, 'CheckUp post'),
-    image,
-    meta: [
-      ['Posted', formatDate(data.createdAt)],
-      ['Type', data.postType],
-      ['Likes', data.likesCount],
-    ],
-    descriptionText: firstString(data.content, `Post ID: ${id}`),
-    appUrl,
-  });
-}
-
-function renderBracket(id, data, appUrl) {
-  renderPage({
-    eyebrowText: 'CheckUp bracket',
-    titleText: firstString(data.name, 'Tournament bracket'),
-    image: data.imageUrl,
-    meta: [
-      ['Starts', formatDate(data.startDate)],
-      ['Teams', data.participantCount],
-      ['Status', data.status],
-      ['Location', data.location],
-    ],
-    descriptionText: firstString(data.description, `Bracket ID: ${id}`),
-    appUrl,
-  });
-}
-
-function renderScoreboard(id, data, appUrl) {
-  const homeName = firstString(data.homeTeam?.name, 'Home');
-  const awayName = firstString(data.awayTeam?.name, 'Away');
-  const score = `${homeName} ${Number(data.homeTeam?.score) || 0} - ${Number(data.awayTeam?.score) || 0} ${awayName}`;
-
-  renderPage({
-    eyebrowText: 'CheckUp scoreboard',
-    titleText: firstString(data.title, score),
-    image: firstString(data.homeTeam?.logoUrl, data.awayTeam?.logoUrl),
-    meta: [
-      ['Score', score],
-      ['Status', data.status],
-      ['Period', data.currentPeriod],
-      ['Updated', formatDate(data.updatedAt)],
-    ],
-    descriptionText: firstString(data.gameType, `Scoreboard ID: ${id}`),
     appUrl,
   });
 }
@@ -299,6 +248,15 @@ function openAppLink(event, appUrl) {
   window.location.href = appUrl;
 }
 
+function isHidden(data) {
+  return data.deleted === true ||
+    data.isDeleted === true ||
+    data.private === true ||
+    data.isPrivate === true ||
+    data.visibility === 'private' ||
+    data.status === 'deleted';
+}
+
 function firstString(...values) {
   for (const value of values) {
     if (typeof value === 'string' && value.trim()) return value.trim();
@@ -336,7 +294,6 @@ function formatDate(value) {
 function firestoreDate(value) {
   if (!value) return null;
   if (typeof value.toDate === 'function') return value.toDate();
-  if (typeof value._seconds === 'number') return new Date(value._seconds * 1000);
   if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
   if (typeof value === 'string' || typeof value === 'number') {
     const date = new Date(value);
